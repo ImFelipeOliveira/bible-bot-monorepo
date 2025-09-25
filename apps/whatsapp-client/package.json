@@ -1,0 +1,24 @@
+{
+  "name": "whatsapp-client",
+  "version": "1.0.0",
+  "description": "A Whatsapp client bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ImFelipeOliveira/bible-bot-monorepo.git"
+  },
+  "keywords": [
+    "bible",
+    "bible-bot",
+    "whatsapp-bible-bot"
+  ],
+  "author": "Felipe Oliveira Souza (flipeaz342@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ImFelipeOliveira/bible-bot-monorepo/issues"
+  },
+  "homepage": "https://github.com/ImFelipeOliveira/bible-bot-monorepo#readme"
+}
