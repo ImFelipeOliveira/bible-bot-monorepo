@@ -9,10 +9,11 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-
+use App\Traits\ApiResponseTrait;
 
 class AuthController extends Controller
 {
+  use ApiResponseTrait;
   /**
    * Registra um novo usuário
    */
@@ -33,31 +34,23 @@ class AuthController extends Controller
 
       $token = $user->createToken('auth-token')->plainTextToken;
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Usuário cadastrado com sucesso',
-        'data' => [
-          'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'created_at' => $user->created_at,
-          ],
-          'token' => $token,
-        ]
-      ], Response::HTTP_CREATED);
+      return $this->successResponse([
+        'user' => [
+          'id' => $user->id,
+          'name' => $user->name,
+          'email' => $user->email,
+          'created_at' => $user->created_at,
+        ],
+        'token' => $token,
+      ], 'Usuário cadastrado com sucesso', Response::HTTP_CREATED);
     } catch (ValidationException $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Dados inválidos',
-        'errors' => $e->errors()
-      ], Response::HTTP_UNPROCESSABLE_ENTITY);
+      return $this->validationErrorResponse($e->errors());
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Erro interno do servidor',
-        'error' => $e->getMessage()
-      ], Response::HTTP_INTERNAL_SERVER_ERROR);
+      return $this->errorResponse(
+        'Erro interno do servidor', 
+        $e->getMessage(), 
+        Response::HTTP_INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -73,42 +66,29 @@ class AuthController extends Controller
       ]);
 
       if (!Auth::attempt($validated)) {
-        return response()->json([
-          'success' => false,
-          'message' => 'Credenciais inválidas'
-        ], Response::HTTP_UNAUTHORIZED);
+        return $this->unauthorizedResponse('Credenciais inválidas');
       }
 
       $user = Auth::user();
-
       $user->tokens()->delete();
-
       $token = $user->createToken('auth-token')->plainTextToken;
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Login realizado com sucesso',
-        'data' => [
-          'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-          ],
-          'token' => $token,
-        ]
-      ], Response::HTTP_OK);
+      return $this->successResponse([
+        'user' => [
+          'id' => $user->id,
+          'name' => $user->name,
+          'email' => $user->email,
+        ],
+        'token' => $token,
+      ], 'Login realizado com sucesso');
     } catch (ValidationException $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Dados inválidos',
-        'errors' => $e->errors()
-      ], Response::HTTP_UNPROCESSABLE_ENTITY);
+      return $this->validationErrorResponse($e->errors());
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Erro interno do servidor',
-        'error' => $e->getMessage()
-      ], Response::HTTP_INTERNAL_SERVER_ERROR);
+      return $this->errorResponse(
+        'Erro interno do servidor',
+        $e->getMessage(),
+        Response::HTTP_INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -119,17 +99,13 @@ class AuthController extends Controller
   {
     try {
       $request->user()->tokens()->delete();
-
-      return response()->json([
-        'success' => true,
-        'message' => 'Logout realizado com sucesso'
-      ]);
+      return $this->successResponse(null, 'Logout realizado com sucesso');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Erro ao fazer logout',
-        'error' => $e->getMessage()
-      ], Response::HTTP_INTERNAL_SERVER_ERROR);
+      return $this->errorResponse(
+        'Erro ao fazer logout',
+        $e->getMessage(),
+        Response::HTTP_INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -141,24 +117,21 @@ class AuthController extends Controller
     try {
       $user = $request->user();
 
-      return response()->json([
-        'success' => true,
-        'data' => [
-          'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'created_at' => $user->created_at,
-            'updated_at' => $user->updated_at,
-          ]
+      return $this->successResponse([
+        'user' => [
+          'id' => $user->id,
+          'name' => $user->name,
+          'email' => $user->email,
+          'created_at' => $user->created_at,
+          'updated_at' => $user->updated_at,
         ]
-      ], Response::HTTP_OK);
+      ]);
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Erro ao buscar perfil do usuário',
-        'error' => $e->getMessage()
-      ], Response::HTTP_INTERNAL_SERVER_ERROR);
+      return $this->errorResponse(
+        'Erro ao buscar perfil do usuário',
+         $e->getMessage(), 
+         Response::HTTP_INTERNAL_SERVER_ERROR
+        );
     }
   }
 }
