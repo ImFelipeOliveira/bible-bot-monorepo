@@ -10,21 +10,18 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Traits\ApiResponseTrait;
+use App\Traits\ValidateRequestTrait;
 
 class AuthController extends Controller
 {
-  use ApiResponseTrait;
+  use ApiResponseTrait, ValidateRequestTrait;
   /**
    * Registra um novo usuário
    */
   public function register(Request $request): JsonResponse
   {
     try {
-      $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:8|confirmed',
-      ]);
+      $validated = $this->validateAuth($request);
 
       $user = User::create([
         'name' => $validated['name'],
@@ -60,12 +57,14 @@ class AuthController extends Controller
   public function login(Request $request): JsonResponse
   {
     try {
-      $validated = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-      ]);
+      $validated = $this->validateLogin($request);
 
-      if (!Auth::attempt($validated)) {
+      $credentials = [
+        'email' => $validated['email_login'],
+        'password' => $validated['password_login']
+      ];
+
+      if (!Auth::attempt($credentials)) {
         return $this->unauthorizedResponse('Credenciais inválidas');
       }
 
